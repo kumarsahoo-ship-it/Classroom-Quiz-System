@@ -28,32 +28,32 @@ document.getElementById("signupForm").addEventListener("submit", function(event)
 });
 
 // LOGIN
-document.getElementById("loginForm")?.addEventListener("submit", function(event) {
-    event.preventDefault(); // stop refresh
+document.addEventListener("DOMContentLoaded", function() {
 
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+    document.getElementById("loginForm")?.addEventListener("submit", function(event) {
+        event.preventDefault();
 
-    fetch("https://classroom-test-system.onrender.com/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, password })
-    })
-    .then(res => res.text())
-    .then(data => {
-        console.log("Login response:", data);
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
 
-        if (data === "Login successful") {
-            // ✅ save user
-            localStorage.setItem("user", username);
+        fetch("https://classroom-test-system.onrender.com/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username, password })
+        })
+        .then(res => res.text())
+        .then(data => {
+            console.log("Login response:", data);
 
-            // ✅ redirect
-            window.location.href = "dashboard.html";
-        } else {
-            alert("Invalid username or password");
-        }
-    })
-    .catch(err => console.log(err));
+            if (data === "Login successful") {
+                localStorage.setItem("user", username);
+                window.location.href = "dashboard.html";
+            } else {
+                alert("Invalid credentials");
+            }
+        });
+    });
+
 });
