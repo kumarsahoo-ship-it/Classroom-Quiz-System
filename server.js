@@ -7,10 +7,10 @@ const cors = require("cors");
 app.use(cors());
 
 // ✅ MongoDB connection (use env variable)
-mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGO_URL)
+.then(() => console.log("DB Connected"))
+.catch(err => console.log("MongoDB error:", err));
+
 .then(() => console.log("DB Connected"))
 .catch(err => console.log("DB Error:", err));
 
