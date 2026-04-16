@@ -4,25 +4,20 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
-mongoose.connect("YOUR_MONGO_URL")
+// ✅ MongoDB connection (use env variable)
+mongoose.connect(process.env.MONGO_URL)
 .then(() => console.log("DB Connected"))
 .catch(err => console.log(err));
 
-app.get("/", (req, res) => {
-    res.send("Server Running");
+// ✅ User Schema
+const UserSchema = new mongoose.Schema({
+  username: String,
+  password: String
 });
 
-app.listen(3000, () => {
-    console.log("Server started on port 3000");
-});
+const User = mongoose.model("User", UserSchema);
 
-app.get("/test", (req, res) => {
-  res.send("API working");
-});
-
-
-let users = [];
-
+// ✅ Routes
 app.get("/", (req, res) => {
   res.send("Server Running");
 });
@@ -31,6 +26,7 @@ app.get("/test", (req, res) => {
   res.send("API working");
 });
 
+// ✅ Signup
 app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
 
@@ -39,6 +35,8 @@ app.post("/signup", async (req, res) => {
 
   res.send("User registered");
 });
+
+// ✅ Login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -51,19 +49,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// ✅ Start server (ONLY ONCE)
 app.listen(3000, () => {
-  console.log("Server started");
+  console.log("Server started on port 3000");
 });
-
-const mongoose = require("mongoose");
-
-mongoose.connect(process.env.MONGO_URL)
-.then(() => console.log("DB Connected"))
-.catch(err => console.log(err));
-
-const UserSchema = new mongoose.Schema({
-  username: String,
-  password: String
-});
-
-const User = mongoose.model("User", UserSchema);
