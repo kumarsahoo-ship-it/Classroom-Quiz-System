@@ -27,33 +27,40 @@ document.getElementById("signupForm").addEventListener("submit", function(event)
     });
 });
 
-// LOGIN
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
 
-    document.getElementById("loginForm")?.addEventListener("submit", function(event) {
-        event.preventDefault();
+    // LOGIN
+    const loginForm = document.getElementById("loginForm");
 
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+    if (loginForm) {
+        loginForm.addEventListener("submit", function (event) {
+            event.preventDefault();
 
-        fetch("https://classroom-test-system.onrender.com/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ username, password })
-        })
-        .then(res => res.text())
-        .then(data => {
-            console.log("Login response:", data);
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
 
-            if (data === "Login successful") {
-                localStorage.setItem("user", username);
-                window.location.href = "dashboard.html";
-            } else {
-                alert("Invalid credentials");
-            }
+            fetch("https://classroom-test-system.onrender.com/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(res => res.text())
+            .then(data => {
+                console.log("Login response:", data);
+
+                if (data === "Login successful") {
+                    localStorage.setItem("user", username);
+                    window.location.href = "dashboard.html";
+                } else {
+                    alert("Invalid credentials");
+                }
+            })
+            .catch(err => console.log(err));
         });
-    });
+    }
+
+});
 
 });
