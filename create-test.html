@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Test</title>
+</head>
+<body>
+
+<h2>Create Test Question</h2>
+
+<input type="text" id="question" placeholder="Enter Question"><br><br>
+
+<input type="text" id="opt1" placeholder="Option 1"><br><br>
+<input type="text" id="opt2" placeholder="Option 2"><br><br>
+<input type="text" id="opt3" placeholder="Option 3"><br><br>
+<input type="text" id="opt4" placeholder="Option 4"><br><br>
+
+<input type="text" id="answer" placeholder="Correct Answer"><br><br>
+
+<button onclick="saveQuestion()">Save Question</button>
+
+<script>
+function saveQuestion() {
+    const data = {
+        question: document.getElementById("question").value,
+        options: [
+            document.getElementById("opt1").value,
+            document.getElementById("opt2").value,
+            document.getElementById("opt3").value,
+            document.getElementById("opt4").value
+        ],
+        answer: document.getElementById("answer").value
+    };
+
+    fetch("https://classroom-test-system.onrender.com/add-question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.text())
+    .then(msg => alert(msg));
+}
+</script>
+
+</body>
+</html>
