@@ -7,9 +7,12 @@ const cors = require("cors");
 app.use(cors());
 
 // ✅ MongoDB connection (use env variable)
-mongoose.connect(process.env.MONGO_URL)
+mongoose.connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
 .then(() => console.log("DB Connected"))
-.catch(err => console.log(err));
+.catch(err => console.log("DB Error:", err));
 
 // ✅ User Schema
 const UserSchema = new mongoose.Schema({
