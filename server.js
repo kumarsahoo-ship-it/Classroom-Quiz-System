@@ -66,3 +66,10 @@ const mongoose = require("mongoose");
 mongoose.connect(process.env.MONGO_URL)
 .then(() => console.log("DB Connected"))
 .catch(err => console.log(err));
+
+const UserSchema = new mongoose.Schema({
+  username: String,
+  password: String
+});
+
+const User = mongoose.model("User", UserSchema);
