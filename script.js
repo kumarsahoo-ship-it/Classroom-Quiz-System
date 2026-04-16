@@ -21,7 +21,10 @@ function loginUser() {
         }
     });
 }
-function signupUser() {
+
+function signupUser(event) {
+    event.preventDefault(); // 🚨 stop refresh
+
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
@@ -34,13 +37,16 @@ function signupUser() {
     })
     .then(res => res.text())
     .then(data => {
-        alert(data);
+        console.log("Response:", data);
 
-        // 🔥 Redirect to login page after signup
-        window.location.href = "login.html";
+        if (data === "User registered") {
+            alert("Signup successful");
+            window.location.href = "login.html"; // ✅ redirect
+        } else {
+            alert("Signup failed");
+        }
     })
     .catch(err => {
-        console.log(err);
+        console.log("Error:", err);
     });
 }
-
