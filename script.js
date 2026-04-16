@@ -1,5 +1,5 @@
 function loginUser() {
-    const username = document.getElementById("username").value;
+    const username = document.getElementById("Registration No.").value;
     const password = document.getElementById("password").value;
 
     fetch("https://your-app.onrender.com/login", {
