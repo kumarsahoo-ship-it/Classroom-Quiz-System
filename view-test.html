@@ -1,0 +1,19 @@
+<h2>Available Tests</h2>
+
+<div id="tests"></div>
+
+<script>
+fetch("https://classroom-test-system.onrender.com/tests")
+.then(res=>res.json())
+.then(data=>{
+  data.forEach(t=>{
+    document.getElementById("tests").innerHTML += 
+      `<p>${t} <button onclick="start('${t}')">Start</button></p>`;
+  });
+});
+
+function start(name){
+  localStorage.setItem("testName", name);
+  window.location.href = "quiz.html";
+}
+</script>
