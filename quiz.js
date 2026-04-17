@@ -79,3 +79,19 @@ function submitQuiz() {
 
     window.location.href = "results.html";
 }
+let warningCount = 0;
+
+document.addEventListener("visibilitychange", function () {
+
+    if (document.hidden) {
+        warningCount++;
+
+        alert("⚠️ Do not switch tabs! Warning: " + warningCount);
+
+        // ❌ Auto submit after 3 warnings
+        if (warningCount >= 3) {
+            alert("❌ Exam ended due to cheating!");
+            submitQuiz();
+        }
+    }
+});
