@@ -65,3 +65,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+
+function go(page){
+  window.location.href = page + ".html";
+}
+
+function logout(){
+  localStorage.removeItem("user");
+  window.location.href = "login.html";
+}
