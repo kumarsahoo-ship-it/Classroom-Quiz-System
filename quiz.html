@@ -1,72 +1,71 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Quiz</title>
-</head>
-<body>
-
-<h2>Quiz Test</h2>
-
-<h3 id="timer">Time: 30</h3>
+<h2 id="title"></h2>
+<h3 id="timer">Time: 60</h3>
 
 <div id="quiz"></div>
-
 <button onclick="submitQuiz()">Submit</button>
 
 <script>
-let time = 30;
 let questions = [];
+let time = 60;
 
-fetch("https://classroom-test-system.onrender.com/get-questions")
-.then(res => res.json())
-.then(data => {
-    questions = data;
-    loadQuiz();
+const testName = localStorage.getItem("testName");
+document.getElementById("title").innerText = testName;
+
+// load questions
+fetch(`https://classroom-test-system.onrender.com/questions/${testName}`)
+.then(res=>res.json())
+.then(data=>{
+  questions = data;
+  load();
 });
 
-function loadQuiz() {
-    const box = document.getElementById("quiz");
-
-    questions.forEach((q, i) => {
-        box.innerHTML += `
-            <div>
-                <p>${q.question}</p>
-                ${q.options.map(opt =>
-                    `<label><input type="radio" name="q${i}" value="${opt}">${opt}</label><br>`
-                ).join("")}
-            </div><hr>
-        `;
-    });
+function load(){
+  questions.forEach((q,i)=>{
+    quiz.innerHTML += `
+      <p>${q.question}</p>
+      ${q.options.map(opt=>`
+        <input type="radio" name="q${i}" value="${opt}">${opt}<br>
+      `).join("")}
+      <hr>`;
+  });
 }
 
 // TIMER
-const timer = setInterval(() => {
-    time--;
-    document.getElementById("timer").innerText = "Time: " + time;
+const t = setInterval(()=>{
+  time--;
+  timer.innerText = "Time: "+time;
 
-    if (time === 0) {
-        clearInterval(timer);
-        submitQuiz(); // auto submit
-    }
-}, 1000);
+  if(time==0){
+    clearInterval(t);
+    submitQuiz();
+  }
+},1000);
 
-// SUBMIT + RESULT
-function submitQuiz() {
-    clearInterval(timer);
+// SUBMIT
+function submitQuiz(){
+  clearInterval(t);
 
-    let score = 0;
+  let score = 0;
 
-    questions.forEach((q, i) => {
-        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+  questions.forEach((q,i)=>{
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    if(sel && sel.value === q.answer) score++;
+  });
 
-        if (selected && selected.value === q.answer) {
-            score++;
-        }
-    });
+  const user = localStorage.getItem("user");
 
-    alert("Your Score: " + score + "/" + questions.length);
+  fetch("https://classroom-test-system.onrender.com/result", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      username:user,
+      testName:testName,
+      score:score,
+      total:questions.length
+    })
+  });
+
+  alert(`Score: ${score}/${questions.length}`);
+  window.location.href = "results.html";
 }
 </script>
-
-</body>
-</html>
