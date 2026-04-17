@@ -6,69 +6,90 @@
 </head>
 <body>
 
-<h2>Create Test Question</h2>
-
-<input type="text" id="question" place<h2>Create Test</h2>
+<h2>Create Test (Multiple Questions)</h2>
 
 <input id="testName" placeholder="Test Name"><br><br>
-<input id="question" placeholder="Question"><br><br>
 
-<input id="opt1" placeholder="Option 1"><br>
-<input id="opt2" placeholder="Option 2"><br>
-<input id="opt3" placeholder="Option 3"><br>
-<input id="opt4" placeholder="Option 4"><br><br>
+<div id="questions"></div>
 
-<input id="answer" placeholder="Correct Answer"><br><br>
-
-<button onclick="save()">Save</button>
+<button onclick="addQuestion()">➕ Add Question</button><br><br>
+<button onclick="submitTest()">✅ Submit Test</button>
 
 <script>
-function save() {
-  fetch("https://classroom-test-system.onrender.com/add-question", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      testName: testName.value,
-      question: question.value,
-      options: [opt1.value, opt2.value, opt3.value, opt4.value],
-      answer: answer.value
-    })
-  })
-  .then(res=>res.text())
-  .then(msg=>alert(msg));
+
+let count = 0;
+
+// ADD QUESTION BLOCK
+function addQuestion() {
+    count++;
+
+    document.getElementById("questions").innerHTML += `
+    <div class="card">
+        <h3>Question ${count}</h3>
+
+        <input placeholder="Enter question" id="q${count}"><br>
+
+        <input placeholder="Option 1" id="q${count}o1">
+        <input placeholder="Option 2" id="q${count}o2">
+        <input placeholder="Option 3" id="q${count}o3">
+        <input placeholder="Option 4" id="q${count}o4"><br><br>
+
+        <label>Select Correct Answer:</label><br>
+
+        <input type="radio" name="ans${count}" value="1"> Option 1
+        <input type="radio" name="ans${count}" value="2"> Option 2
+        <input type="radio" name="ans${count}" value="3"> Option 3
+        <input type="radio" name="ans${count}" value="4"> Option 4
+
+        <hr>
+    </div>
+    `;
 }
-</script>holder="Enter Question"><br><br>
 
-<input type="text" id="opt1" placeholder="Option 1"><br><br>
-<input type="text" id="opt2" placeholder="Option 2"><br><br>
-<input type="text" id="opt3" placeholder="Option 3"><br><br>
-<input type="text" id="opt4" placeholder="Option 4"><br><br>
+// SUBMIT ALL QUESTIONS
+function submitTest() {
 
-<input type="text" id="answer" placeholder="Correct Answer"><br><br>
+    const testName = document.getElementById("testName").value;
 
-<button onclick="saveQuestion()">Save Question</button>
+    for (let i = 1; i <= count; i++) {
 
-<script>
-function saveQuestion() {
-    const data = {
-        question: document.getElementById("question").value,
-        options: [
-            document.getElementById("opt1").value,
-            document.getElementById("opt2").value,
-            document.getElementById("opt3").value,
-            document.getElementById("opt4").value
-        ],
-        answer: document.getElementById("answer").value
-    };
+        const question = document.getElementById(`q${i}`).value;
 
-    fetch("https://classroom-test-system.onrender.com/add-question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    })
-    .then(res => res.text())
-    .then(msg => alert(msg));
+        const options = [
+            document.getElementById(`q${i}o1`).value,
+            document.getElementById(`q${i}o2`).value,
+            document.getElementById(`q${i}o3`).value,
+            document.getElementById(`q${i}o4`).value
+        ];
+
+        const selected = document.querySelector(`input[name="ans${i}"]:checked`);
+
+        if (!selected) {
+            alert("Select correct answer for question " + i);
+            return;
+        }
+
+        const answer = options[selected.value - 1];
+
+        // SEND EACH QUESTION TO BACKEND
+        fetch("https://classroom-test-system.onrender.com/add-question", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                testName,
+                question,
+                options,
+                answer
+            })
+        });
+    }
+
+    alert("Test Created Successfully 🎉");
+    window.location.href = "dashboard.html";
 }
+
 </script>
 
 </body>
