@@ -128,6 +128,7 @@ const QuestionSchema = new mongoose.Schema({
 });
 
 // ================= LEADERBOARD =================
+// ================= LEADERBOARD =================
 app.get("/leaderboard/:testName", async (req, res) => {
   try {
     const data = await Result.find({
@@ -135,7 +136,6 @@ app.get("/leaderboard/:testName", async (req, res) => {
     }).sort({ score: -1 });
 
     res.json(data);
-
   } catch (err) {
     console.log(err);
     res.status(500).send("Server error");
