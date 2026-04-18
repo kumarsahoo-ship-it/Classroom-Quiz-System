@@ -9,22 +9,26 @@
 <h2>Create Test (Multiple Questions)</h2>
 
 <input id="testName" placeholder="Test Name"><br><br>
+<input id="time" placeholder="Time in seconds (e.g. 60)"><br><br>
 
 <div id="questions"></div>
 
-<button onclick="addQuestion()">➕ Add Question</button><br><br>
-<button onclick="submitTest()">✅ Submit Test</button>
+<button type="button" onclick="addQuestion()">➕ Add Question</button>
+<br><br>
+<button type="button" onclick="submitTest()">✅ Submit Test</button>
 
 <script>
 
 let count = 0;
 
-// ADD QUESTION BLOCK
+// ✅ ADD QUESTION (NO DELETE BUG)
 function addQuestion() {
     count++;
 
-    document.getElementById("questions").innerHTML += `
-    <div class="card">
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
         <h3>Question ${count}</h3>
 
         <input placeholder="Enter question" id="q${count}"><br>
@@ -36,20 +40,27 @@ function addQuestion() {
 
         <label>Select Correct Answer:</label><br>
 
-        <input type="radio" name="ans${count}" value="1"> Option 1
-        <input type="radio" name="ans${count}" value="2"> Option 2
-        <input type="radio" name="ans${count}" value="3"> Option 3
-        <input type="radio" name="ans${count}" value="4"> Option 4
+        <label><input type="radio" name="ans${count}" value="1"> Option 1</label>
+        <label><input type="radio" name="ans${count}" value="2"> Option 2</label>
+        <label><input type="radio" name="ans${count}" value="3"> Option 3</label>
+        <label><input type="radio" name="ans${count}" value="4"> Option 4</label>
 
         <hr>
-    </div>
     `;
+
+    document.getElementById("questions").appendChild(div);
 }
 
-// SUBMIT ALL QUESTIONS
+// ✅ SUBMIT TEST
 function submitTest() {
 
     const testName = document.getElementById("testName").value;
+    const time = document.getElementById("time").value;
+
+    if (!testName || !time) {
+        alert("Enter test name and time");
+        return;
+    }
 
     for (let i = 1; i <= count; i++) {
 
@@ -64,6 +75,11 @@ function submitTest() {
 
         const selected = document.querySelector(`input[name="ans${i}"]:checked`);
 
+        if (!question || options.includes("")) {
+            alert("Fill all fields in question " + i);
+            return;
+        }
+
         if (!selected) {
             alert("Select correct answer for question " + i);
             return;
@@ -71,7 +87,7 @@ function submitTest() {
 
         const answer = options[selected.value - 1];
 
-        // SEND EACH QUESTION TO BACKEND
+        // ✅ SEND TO BACKEND
         fetch("https://classroom-test-system.onrender.com/add-question", {
             method: "POST",
             headers: {
@@ -81,15 +97,16 @@ function submitTest() {
                 testName,
                 question,
                 options,
-                answer
+                answer,
+                time
             })
         });
     }
 
     alert("Test Created Successfully 🎉");
+
     window.location.href = "dashboard.html";
 }
-    <input id="time" placeholder="Time in seconds (e.g. 60)">
 
 </script>
 
