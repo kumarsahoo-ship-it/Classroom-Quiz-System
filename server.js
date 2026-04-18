@@ -126,3 +126,11 @@ const QuestionSchema = new mongoose.Schema({
   answer: String,
   time: Number   // ⏱️ time in seconds
 });
+
+// 🏆 LEADERBOARD (RANK-WISE)
+app.get("/leaderboard/:testName", async (req, res) => {
+  const data = await Result.find({ testName: req.params.testName })
+    .sort({ score: -1 }); // highest first
+
+  res.json(data);
+});
