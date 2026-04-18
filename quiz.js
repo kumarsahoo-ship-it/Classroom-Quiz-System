@@ -1,97 +1,78 @@
 let questions = [];
+let time = 0;
+let warning = 0;
 
 const testName = localStorage.getItem("testName");
-document.getElementById("title").innerText = testName;
+const user = localStorage.getItem("user");
 
-// LOAD QUESTIONS
+// LOAD
 fetch(`https://classroom-test-system.onrender.com/questions/${testName}`)
 .then(res => res.json())
 .then(data => {
     questions = data;
-    loadQuiz();
+    time = data[0].time;
+    load();
 });
 
-// DISPLAY QUESTIONS
-function loadQuiz() {
+// LOAD QUESTIONS
+function load() {
     const box = document.getElementById("quiz");
 
-    questions.forEach((q, i) => {
+    questions.forEach((q,i)=>{
         box.innerHTML += `
-            <div class="question">
-                <p>${i+1}. ${q.question}</p>
-
-                ${q.options.map(opt => `
-                    <label class="option">
-                        <input type="radio" name="q${i}" value="${opt}">
-                        ${opt}
-                    </label>
-                `).join("")}
-            </div>
+            <p>${i+1}. ${q.question}</p>
+            ${q.options.map(opt=>`
+                <label>
+                    <input type="radio" name="q${i}" value="${opt}">
+                    ${opt}
+                </label><br>
+            `).join("")}
+            <hr>
         `;
     });
+
+    startTimer();
 }
 
 // TIMER
-let time = 60;
+function startTimer() {
+    const t = setInterval(()=>{
+        time--;
 
-// after fetching questions
-fetch(`https://classroom-test-system.onrender.com/questions/${testName}`)
-.then(res => res.json())
-.then(data => {
-    questions = data;
+        let h = Math.floor(time/3600);
+        let m = Math.floor((time%3600)/60);
+        let s = time%60;
 
-    // ✅ take time from DB (first question)
-    time = data[0].time || 60;
+        document.getElementById("timer").innerText =
+            `Time Left: ${h}:${m}:${s}`;
 
-    loadQuiz();
-});
-
-// SUBMIT QUIZ
-function submitQuiz() {
-
-    clearInterval(timer);
-
-    let score = 0;
-
-    questions.forEach((q, i) => {
-        const selected = document.querySelector(`input[name="q${i}"]:checked`);
-
-        if (selected && selected.value === q.answer) {
-            score++;
+        if(time<=0){
+            clearInterval(t);
+            submitQuiz();
         }
+    },1000);
+}
+
+// SUBMIT
+function submitQuiz(){
+    let score=0;
+
+    questions.forEach((q,i)=>{
+        const sel=document.querySelector(`input[name="q${i}"]:checked`);
+        if(sel && sel.value===q.answer) score++;
     });
 
-    const user = localStorage.getItem("user");
-
-    // SAVE RESULT
-    fetch("https://classroom-test-system.onrender.com/result", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-            username: user,
-            testName: testName,
-            score: score,
-            total: questions.length
+    fetch("https://classroom-test-system.onrender.com/result",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            username:user,
+            testName,
+            score,
+            total:questions.length
         })
     });
 
-    alert(`Score: ${score}/${questions.length}`);
-
-    window.location.href = "results.html";
+    alert(`Score: ${score}`);
+    window.location.href="results.html";
 }
-let warningCount = 0;
-
-document.addEventListener("visibilitychange", function () {
-
-    if (document.hidden) {
-        warningCount++;
-
-        alert("⚠️ Do not switch tabs! Warning: " + warningCount);
-
-        // ❌ Auto submit after 3 warnings
-        if (warningCount >= 3) {
-            alert("❌ Exam ended due to cheating!");
-            submitQuiz();
-        }
-    }
-});
