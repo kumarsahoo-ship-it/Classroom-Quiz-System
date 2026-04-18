@@ -6,21 +6,19 @@
 </head>
 <body>
 
-<!-- 🔐 Protect Page -->
+<!-- 🔐 Protect Dashboard -->
 <script>
-    const user = localStorage.getItem("user");
-
-    if (!user) {
-        window.location.href = "login.html";
-    }
+const user = localStorage.getItem("user");
+if (!user) {
+    window.location.href = "login.html";
+}
 </script>
 
 <div class="container">
 
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <div class="sidebar">
         <h2>Quiz System</h2>
-
         <ul>
             <li onclick="go('dashboard')" class="active">Dashboard</li>
             <li onclick="go('create-test')">Create Test</li>
@@ -30,47 +28,37 @@
         </ul>
     </div>
 
-    <!-- Main -->
+    <!-- MAIN -->
     <div class="main">
 
-        <h1>Welcome 👋 <span id="user"></span></h1>
+        <h1>Welcome 👋 <span id="username"></span></h1>
 
-        <!-- Cards -->
+        <!-- CARDS -->
         <div class="cards">
+
             <div class="card">
                 <h3>Total Tests</h3>
-                <p>10</p>
+                <p id="totalTests">0</p>
             </div>
 
             <div class="card">
-                <h3>Completed</h3>
-                <p>6</p>
+                <h3>Available Tests</h3>
+                <p id="availableTests">0</p>
             </div>
 
             <div class="card">
-                <h3>Pending</h3>
-                <p>4</p>
+                <h3>Your Results</h3>
+                <p id="totalResults">0</p>
             </div>
+
         </div>
 
-        <!-- Table -->
-        <h2>Recent Activity</h2>
+        <!-- RECENT TESTS -->
+        <h2>Recent Tests</h2>
 
-        <table>
+        <table id="recentTests">
             <tr>
-                <th>Test</th>
-                <th>Status</th>
-                <th>Score</th>
-            </tr>
-            <tr>
-                <td>Math Test</td>
-                <td>Completed</td>
-                <td>8/10</td>
-            </tr>
-            <tr>
-                <td>Science Test</td>
-                <td>Pending</td>
-                <td>-</td>
+                <th>Test Name</th>
             </tr>
         </table>
 
@@ -79,21 +67,51 @@
 
 <!-- JS -->
 <script>
-    // show username
-    document.getElementById("user").innerText = localStorage.getItem("user");
 
-    // navigation
-    function go(page) {
-        window.location.href = page + ".html";
-    }
+// 👤 Show username
+document.getElementById("username").innerText = user;
 
-    // logout
-    function logout() {
-        localStorage.removeItem("user");
-        window.location.href = "login.html";
-    }
+// 🔄 NAVIGATION
+function go(page) {
+    window.location.href = page + ".html";
+}
+
+// 🚪 LOGOUT
+function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+}
+
+// ================= LOAD DATA =================
+
+// TOTAL TESTS
+fetch("https://classroom-test-system.onrender.com/tests")
+.then(res => res.json())
+.then(data => {
+
+    // Cards update
+    document.getElementById("totalTests").innerText = data.length;
+    document.getElementById("availableTests").innerText = data.length;
+
+    // Recent tests
+    data.slice(0,5).forEach(test => {
+        document.getElementById("recentTests").innerHTML += `
+            <tr>
+                <td>${test}</td>
+            </tr>
+        `;
+    });
+
+});
+
+// USER RESULTS
+fetch(`https://classroom-test-system.onrender.com/results/${user}`)
+.then(res => res.json())
+.then(data => {
+    document.getElementById("totalResults").innerText = data.length;
+});
+
 </script>
-    <script src="script.js"></script>
 
 </body>
 </html>
