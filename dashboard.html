@@ -11,6 +11,7 @@ function loadLeaderboard(testName) {
 
         const table = document.getElementById("leaderboardTable");
 
+        // ✅ Proper table structure
         table.innerHTML = `
             <tr>
                 <th>Rank</th>
@@ -20,11 +21,17 @@ function loadLeaderboard(testName) {
             </tr>
         `;
 
+        // ✅ No data case
         if (data.length === 0) {
-            table.innerHTML += `<tr><td colspan="4">No results yet</td></tr>`;
+            table.innerHTML += `
+                <tr>
+                    <td colspan="4">No results yet</td>
+                </tr>
+            `;
             return;
         }
 
+        // ✅ Add rows
         data.forEach((r, index) => {
             table.innerHTML += `
                 <tr>
