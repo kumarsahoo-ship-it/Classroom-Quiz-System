@@ -1,17 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 🔐 Protect Page -->
+<script>
+const user = localStorage.getItem("user");
+if (!user) {
+    window.location.href = "login.html";
+}
+</script>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>Quiz System</h2>
+        <ul>
+            <li onclick="go('dashboard')" class="active">Dashboard</li>
+            <li onclick="go('create-test')">Create Test</li>
+            <li onclick="go('view-test')">View Test</li>
+            <li onclick="go('results')">Results</li>
+            <li onclick="logout()">Logout</li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <h1>Welcome 👋 <span id="username"></span></h1>
+
+        <!-- SELECT TEST -->
+        <h2>Select Test</h2>
+        <select id="testSelect"></select>
+
+        <!-- LEADERBOARD -->
+        <h2>Leaderboard</h2>
+
+        <table id="leaderboardTable" border="1" cellpadding="10">
+            <tr>
+                <th>Rank</th>
+                <th>Student</th>
+                <th>Score</th>
+                <th>Total</th>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+<script>
+
+// 👤 Show username
+document.getElementById("username").innerText = user;
+
+// 🔄 Navigation
+function go(page) {
+    window.location.href = page + ".html";
+}
+
+// 🚪 Logout
+function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+}
+
+// ================= LOAD TEST LIST =================
+fetch("https://classroom-test-system.onrender.com/tests")
+.then(res => {
+    if (!res.ok) throw new Error("Tests API failed");
+    return res.json();
+})
+.then(tests => {
+
+    const select = document.getElementById("testSelect");
+
+    if (!tests || tests.length === 0) {
+        select.innerHTML = "<option>No Tests Available</option>";
+        return;
+    }
+
+    tests.forEach(t => {
+        select.innerHTML += `<option value="${t}">${t}</option>`;
+    });
+
+    // load first test
+    loadLeaderboard(tests[0]);
+
+    // change event
+    select.addEventListener("change", function () {
+        loadLeaderboard(this.value);
+    });
+
+})
+.catch(err => {
+    console.log("Tests error:", err);
+    alert("Error loading tests");
+});
+
+
+// ================= LOAD LEADERBOARD =================
 function loadLeaderboard(testName) {
 
     fetch(`https://classroom-test-system.onrender.com/leaderboard/${testName}`)
     .then(res => {
-        if (!res.ok) {
-            throw new Error("API not found");
-        }
+        if (!res.ok) throw new Error("Leaderboard API failed");
         return res.json();
     })
     .then(data => {
 
         const table = document.getElementById("leaderboardTable");
 
-        // ✅ Proper table structure
+        // reset table
         table.innerHTML = `
             <tr>
                 <th>Rank</th>
@@ -21,8 +124,7 @@ function loadLeaderboard(testName) {
             </tr>
         `;
 
-        // ✅ No data case
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
             table.innerHTML += `
                 <tr>
                     <td colspan="4">No results yet</td>
@@ -31,7 +133,6 @@ function loadLeaderboard(testName) {
             return;
         }
 
-        // ✅ Add rows
         data.forEach((r, index) => {
             table.innerHTML += `
                 <tr>
@@ -46,6 +147,11 @@ function loadLeaderboard(testName) {
     })
     .catch(err => {
         console.log("Leaderboard error:", err);
-        alert("Leaderboard API not working");
+        alert("Leaderboard not working (check backend)");
     });
 }
+
+</script>
+
+</body>
+</html>
