@@ -1,51 +1,75 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 
 const app = express();
+
+// ================= MIDDLEWARE =================
 app.use(express.json());
-const cors = require("cors");
 app.use(cors());
 
-// ✅ MongoDB connection (use env variable)
+// ================= MONGODB CONNECT =================
 mongoose.connect(process.env.MONGO_URL)
-.then(() => console.log("DB Connected"))
-.catch(err => console.log("MongoDB error:", err));
+.then(() => console.log("MongoDB connected successfully"))
+.catch(err => console.log(err));
 
-mongoose.connection.on("error", err => {
-    console.log("MongoDB error:", err);
-});
 
-mongoose.connection.once("open", () => {
-    console.log("MongoDB connected successfully");
-});
-
-// ✅ User Schema
+// ================= USER SCHEMA =================
 const UserSchema = new mongoose.Schema({
   username: String,
   password: String
 });
-
 const User = mongoose.model("User", UserSchema);
 
-// ✅ Routes
+
+// ================= QUESTION SCHEMA =================
+const QuestionSchema = new mongoose.Schema({
+  testName: String,
+  question: String,
+  options: Array,
+  answer: String,
+  time: Number
+});
+const Question = mongoose.model("Question", QuestionSchema);
+
+
+// ================= RESULT SCHEMA =================
+const ResultSchema = new mongoose.Schema({
+  username: String,
+  testName: String,
+  score: Number,
+  total: Number
+});
+const Result = mongoose.model("Result", ResultSchema);
+
+
+// ================= ROUTES =================
+
+// HOME
 app.get("/", (req, res) => {
   res.send("Server Running");
 });
 
-app.get("/test", (req, res) => {
-  res.send("API working");
-});
 
-// ✅ Signup
+// ================= AUTH =================
+
+// SIGNUP
 app.post("/signup", async (req, res) => {
-  const { username, password } = req.body;
+  try {
+    const { username, password } = req.body;
 
-  const newUser = new User({ username, password });
-  await newUser.save();
+    const user = new User({ username, password });
+    await user.save();
 
-  res.send("User registered");
+    res.send("User registered");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Signup error");
+  }
 });
 
+
+// LOGIN
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -59,75 +83,98 @@ app.post("/login", async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.send("Error");
+    res.status(500).send("Login error");
   }
 });
 
-const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-});
-
-// ================= QUESTION MODEL =================
-const QuestionSchema = new mongoose.Schema({
-  testName: String,
-  question: String,
-  options: Array,
-  answer: String
-});
-const Question = mongoose.model("Question", QuestionSchema);
-
-// ================= RESULT MODEL =================
-const ResultSchema = new mongoose.Schema({
-  username: String,
-  testName: String,
-  score: Number,
-  total: Number
-});
-const Result = mongoose.model("Result", ResultSchema);
-
-// ================= ADD QUESTION =================
+// ================= CREATE TEST =================
 app.post("/add-question", async (req, res) => {
-  const q = new Question(req.body);
-  await q.save();
-  res.send("Question saved");
+  try {
+    const { testName, question, options, answer, time } = req.body;
+
+    const newQ = new Question({
+      testName,
+      question,
+      options,
+      answer,
+      time
+    });
+
+    await newQ.save();
+
+    res.send("Question added");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error adding question");
+  }
 });
 
-// ================= GET TEST LIST =================
+
+// ================= GET TESTS =================
 app.get("/tests", async (req, res) => {
-  const tests = await Question.distinct("testName");
-  res.json(tests);
+  try {
+    const tests = await Question.distinct("testName");
+    res.json(tests);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error fetching tests");
+  }
 });
 
-// ================= GET QUESTIONS BY TEST =================
+
+// ================= GET QUESTIONS =================
 app.get("/questions/:testName", async (req, res) => {
-  const data = await Question.find({ testName: req.params.testName });
-  res.json(data);
+  try {
+    const data = await Question.find({
+      testName: req.params.testName
+    });
+
+    res.json(data);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error fetching questions");
+  }
 });
+
 
 // ================= SAVE RESULT =================
 app.post("/result", async (req, res) => {
-  const r = new Result(req.body);
-  await r.save();
-  res.send("Result saved");
+  try {
+    const { username, testName, score, total } = req.body;
+
+    const newResult = new Result({
+      username,
+      testName,
+      score,
+      total
+    });
+
+    await newResult.save();
+
+    res.send("Result saved");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error saving result");
+  }
 });
 
-// ================= GET RESULTS =================
+
+// ================= GET USER RESULTS =================
 app.get("/results/:username", async (req, res) => {
-  const data = await Result.find({ username: req.params.username });
-  res.json(data);
+  try {
+    const data = await Result.find({
+      username: req.params.username
+    });
+
+    res.json(data);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error fetching results");
+  }
 });
 
-const QuestionSchema = new mongoose.Schema({
-  testName: String,
-  question: String,
-  options: Array,
-  answer: String,
-  time: Number   // ⏱️ time in seconds
-});
 
-// ================= LEADERBOARD =================
 // ================= LEADERBOARD =================
 app.get("/leaderboard/:testName", async (req, res) => {
   try {
@@ -138,6 +185,14 @@ app.get("/leaderboard/:testName", async (req, res) => {
     res.json(data);
   } catch (err) {
     console.log(err);
-    res.status(500).send("Server error");
+    res.status(500).send("Leaderboard error");
   }
+});
+
+
+// ================= SERVER =================
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Server started on port " + PORT);
 });
