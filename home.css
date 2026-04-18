@@ -39,7 +39,7 @@ body {
 .buttons a {
     text-decoration: none;
     background: rgba(255,255,255,0.2);
-    color: white;
+    color: red;
     padding: 12px 20px;
     margin: 10px;
     border-radius: 8px;
