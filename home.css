@@ -1,60 +1,51 @@
 body {
     margin: 0;
-    font-family: Arial;
-    background: transparent;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298); /* bluish background */
+    color: white;
 }
 
-/* HERO */
+/* HERO SECTION */
 .hero {
     height: 100vh;
-    background: transparent;
-    color: white;
-    text-align: center;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: center;   /* center vertically */
+    align-items: center;       /* center horizontally */
+    text-align: center;
 }
 
+/* GLASS BOX */
+.hero-box {
+    background: rgba(255, 255, 255, 0.1);  /* transparent */
+    backdrop-filter: blur(12px);           /* glass effect */
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* TEXT */
 .hero h1 {
     font-size: 50px;
+    margin-bottom: 10px;
 }
 
 .hero p {
     font-size: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
+/* BUTTONS */
 .buttons a {
     text-decoration: none;
-    background: white;
-    color: #333;
+    background: rgba(255,255,255,0.2);
+    color: white;
     padding: 12px 20px;
     margin: 10px;
     border-radius: 8px;
-    font-weight: bold;
-}
-
-.buttons a:hover {
-    background: #ddd;
-}
-
-/* FEATURES */
-.features {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 40px;
-    gap: 20px;
-}
-
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     transition: 0.3s;
 }
 
-.card:hover {
-    transform: translateY(-5px);
+.buttons a:hover {
+    background: rgba(255,255,255,0.4);
 }
