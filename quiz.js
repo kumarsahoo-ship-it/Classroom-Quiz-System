@@ -76,3 +76,22 @@ function submitQuiz(){
     alert(`Score: ${score}`);
     window.location.href="results.html";
 }
+
+// TAB SWITCH DETECT
+document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden){
+        warning++;
+        alert("Do not switch tabs! Warning: "+warning);
+
+        if(warning>=3){
+            alert("Exam ended due to cheating!");
+            submitQuiz();
+        }
+    }
+});
+
+// DISABLE RIGHT CLICK
+document.addEventListener("contextmenu", e=>e.preventDefault());
+
+// DISABLE COPY
+document.addEventListener("copy", e=>e.preventDefault());
