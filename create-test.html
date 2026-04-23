@@ -46,8 +46,13 @@
 let count = 0;
 
 // ================= ADD QUESTION =================
+let count = 0;
+
 function addQuestion() {
+
     count++;
+
+    const container = document.getElementById("questions");
 
     const div = document.createElement("div");
     div.className = "card";
@@ -62,17 +67,17 @@ function addQuestion() {
         <input id="q${count}o3" placeholder="Option 3"><br>
         <input id="q${count}o4" placeholder="Option 4"><br><br>
 
-        <label><b>Select Correct Answer:</b></label><br>
+        <label>Select Correct:</label><br>
 
-        <label><input type="radio" name="ans${count}" value="1"> Option 1</label><br>
-        <label><input type="radio" name="ans${count}" value="2"> Option 2</label><br>
-        <label><input type="radio" name="ans${count}" value="3"> Option 3</label><br>
-        <label><input type="radio" name="ans${count}" value="4"> Option 4</label>
+        <label><input type="radio" name="ans${count}" value="1"> 1</label>
+        <label><input type="radio" name="ans${count}" value="2"> 2</label>
+        <label><input type="radio" name="ans${count}" value="3"> 3</label>
+        <label><input type="radio" name="ans${count}" value="4"> 4</label>
 
         <hr>
     `;
 
-    document.getElementById("questions").appendChild(div);
+    container.appendChild(div);
 }
 
 // ================= SUBMIT TEST =================
