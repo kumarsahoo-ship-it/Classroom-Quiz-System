@@ -1,122 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .box {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            width: 320px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        h2 {
-            margin-bottom: 20px;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: #5a67d8;
-        }
-
-        a {
-            color: #667eea;
-            text-decoration: none;
-        }
-    </style>
+    <title>Login Page</title>
+    <link rel="stylesheet" href="login.css">
 </head>
 <body>
+    <div class="logbox">
+        
+        <h2>Login</h2>
+        
+ <form id="loginForm">
+    <input type="text" id="username" placeholder="Username" required><br><br>
+    <input type="password" id="password" placeholder="Password" required><br><br>
 
-<div class="box">
-    <h2>Login</h2>
+    <button type="submit">Login</button>
+</form>
 
-    <input id="username" placeholder="Username">
-    <input id="password" type="password" placeholder="Password">
+        <p>Don't have an account? <a href="signup.html">Sign up</a></p>
 
-    <button onclick="login()">Login</button>
-
-    <p>Don't have an account? <a href="signup.html">Signup</a></p>
-</div>
-
-<script>
-
-const API = "https://classroom-test-system.onrender.com";
-
-// ================= LOGIN =================
-function login() {
-
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if (!username || !password) {
-        alert("Enter username and password");
-        return;
-    }
-
-    fetch(API + "/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, password })
-    })
-    .then(res => res.text())
-    .then(data => {
-
-        console.log("Server response:", data); // debug
-
-        // ✅ HANDLE BOTH POSSIBLE RESPONSES
-        if (data.toLowerCase().includes("login")) {
-
-            // 🔥 SAVE USER (VERY IMPORTANT)
-            localStorage.setItem("user", username);
-
-            alert("Login Successful ✅");
-
-            window.location.href = "dashboard.html";
-
-        } else {
-            alert("Invalid username or password ❌");
-        }
-    })
-    .catch(err => {
-        console.log(err);
-        alert("Server error");
-    });
-}
-
-</script>
-
+    </div>
+    <script src="script.js"></script>
 </body>
-</html>
+
+   
