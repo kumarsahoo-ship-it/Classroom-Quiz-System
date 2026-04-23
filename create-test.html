@@ -80,9 +80,9 @@ function submitTest() {
 
     const testName = document.getElementById("testName").value.trim();
 
-    const h = parseInt(document.getElementById("hour").value) || 0;
-    const m = parseInt(document.getElementById("minute").value) || 0;
-    const s = parseInt(document.getElementById("second").value) || 0;
+    const h = parseInt(hour.value) || 0;
+    const m = parseInt(minute.value) || 0;
+    const s = parseInt(second.value) || 0;
 
     const totalTime = h * 3600 + m * 60 + s;
 
@@ -90,6 +90,8 @@ function submitTest() {
         alert("Enter test name and valid timer");
         return;
     }
+
+    let questions = [];
 
     for (let i = 1; i <= count; i++) {
 
@@ -104,12 +106,47 @@ function submitTest() {
 
         const selected = document.querySelector(`input[name="ans${i}"]:checked`);
 
+        // ❌ STOP if incomplete
         if (!question || options.includes("") || !selected) {
-            alert("Fill all fields for Question " + i);
+            alert("❌ Complete all questions before submitting");
             return;
         }
 
-        const answer = options[selected.value - 1];
+        questions.push({
+            question,
+            options,
+            answer: options[selected.value - 1]
+        });
+    }
+
+    // ✅ SINGLE REQUEST ONLY
+    fetch("https://classroom-test-system.onrender.com/add-questions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            testName,
+            questions,
+            time: totalTime
+        })
+    })
+    .then(async res => {
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert("❌ " + data.message);
+            return;
+        }
+
+        alert("✅ Test Created Successfully");
+        window.location.href = "dashboard.html";
+    })
+    .catch(err => {
+        console.log(err);
+        alert("Server error");
+    });
+}
 
         // SEND TO BACKEND
         fetch("https://classroom-test-system.onrender.com/add-question", {
