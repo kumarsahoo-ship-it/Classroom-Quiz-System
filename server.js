@@ -29,6 +29,64 @@ const ResultSchema = new mongoose.Schema({
 
 const Result = mongoose.model("Result", ResultSchema);
 
+// ================= USER SCHEMA =================
+const UserSchema = new mongoose.Schema({
+  username: String,
+  password: String
+});
+
+const User = mongoose.model("User", UserSchema);
+
+
+// ================= SIGNUP =================
+app.post("/signup", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // ❌ check if user exists
+    const exists = await User.findOne({ username });
+    if (exists) {
+      return res.status(400).json({
+        message: "User already exists"
+      });
+    }
+
+    // ✅ create user
+    const newUser = new User({ username, password });
+    await newUser.save();
+
+    res.json({ message: "Signup successful" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Signup error");
+  }
+});
+
+
+// ================= LOGIN =================
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username, password });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid credentials"
+      });
+    }
+
+    res.json({
+      message: "Login successful",
+      username: user.username
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Login error");
+  }
+});
 // ================= CREATE TEST =================
 app.post("/add-questions", async (req, res) => {
   try {
