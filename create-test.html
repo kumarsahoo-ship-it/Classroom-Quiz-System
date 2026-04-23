@@ -10,102 +10,90 @@
 
 <input id="testName" placeholder="Test Name"><br><br>
 
-<h3>⏱ Timer</h3>
-<input id="hour" type="number" placeholder="HH">
-<input id="minute" type="number" placeholder="MM">
-<input id="second" type="number" placeholder="SS">
+<!-- ⏱ TIMER -->
+<h3>⏱ Set Timer</h3>
 
+<div class="timer-box">
+    <div class="time-input">
+        <input id="hour" type="number" min="0" max="23" placeholder="00">
+        <label>Hours</label>
+    </div>
+
+    <span>:</span>
+
+    <div class="time-input">
+        <input id="minute" type="number" min="0" max="59" placeholder="00">
+        <label>Minutes</label>
+    </div>
+
+    <span>:</span>
+
+    <div class="time-input">
+        <input id="second" type="number" min="0" max="59" placeholder="00">
+        <label>Seconds</label>
+    </div>
+</div>
+
+<!-- QUESTIONS -->
 <div id="questions"></div>
 
-<br>
-<button onclick="addQuestion()">➕ Add Question</button>
-<button onclick="previewTest()">👁 Preview</button>
-<button onclick="submitTest()">✅ Save</button>
+<button type="button" onclick="addQuestion()">➕ Add Question</button>
+<br><br>
+<button type="button" onclick="submitTest()">✅ Submit Test</button>
 
 <script>
 
 let count = 0;
 
-// ADD QUESTION
+// ================= ADD QUESTION =================
 function addQuestion() {
     count++;
 
     const div = document.createElement("div");
-    div.id = "card" + count;
+    div.className = "card";
 
     div.innerHTML = `
-        <h3>Q${count}</h3>
-        <input id="q${count}" placeholder="Question"><br>
+        <h3>Question ${count}</h3>
+
+        <input id="q${count}" placeholder="Enter question"><br><br>
 
         <input id="q${count}o1" placeholder="Option 1"><br>
         <input id="q${count}o2" placeholder="Option 2"><br>
         <input id="q${count}o3" placeholder="Option 3"><br>
-        <input id="q${count}o4" placeholder="Option 4"><br>
+        <input id="q${count}o4" placeholder="Option 4"><br><br>
 
-        <input type="radio" name="ans${count}" value="1">1
-        <input type="radio" name="ans${count}" value="2">2
-        <input type="radio" name="ans${count}" value="3">3
-        <input type="radio" name="ans${count}" value="4">4
+        <label><b>Select Correct Answer:</b></label><br>
 
-        <br>
-        <button onclick="deleteQuestion(${count})">Delete</button>
+        <label><input type="radio" name="ans${count}" value="1"> Option 1</label><br>
+        <label><input type="radio" name="ans${count}" value="2"> Option 2</label><br>
+        <label><input type="radio" name="ans${count}" value="3"> Option 3</label><br>
+        <label><input type="radio" name="ans${count}" value="4"> Option 4</label>
+
         <hr>
     `;
 
     document.getElementById("questions").appendChild(div);
 }
 
-// DELETE
-function deleteQuestion(id) {
-    document.getElementById("card" + id).remove();
-}
-
-// PREVIEW
-function previewTest() {
-    let text = "";
-
-    for (let i = 1; i <= count; i++) {
-        const q = document.getElementById(`q${i}`);
-        if (!q) continue;
-
-        text += `\n${i}. ${q.value}`;
-    }
-
-    alert(text || "No questions");
-}
-
-// SUBMIT
+// ================= SUBMIT TEST =================
 function submitTest() {
 
     const testName = document.getElementById("testName").value.trim();
 
-    const h = parseInt(hour.value) || 0;
-    const m = parseInt(minute.value) || 0;
-    const s = parseInt(second.value) || 0;
+    const h = parseInt(document.getElementById("hour").value) || 0;
+    const m = parseInt(document.getElementById("minute").value) || 0;
+    const s = parseInt(document.getElementById("second").value) || 0;
 
     const totalTime = h * 3600 + m * 60 + s;
 
     if (!testName || totalTime <= 0) {
-        alert("Enter test name and timer");
+        alert("Enter test name and valid timer");
         return;
     }
 
-    let questions = [];
-    let seen = new Set();
-
     for (let i = 1; i <= count; i++) {
 
-        const qEl = document.getElementById(`q${i}`);
-        if (!qEl) continue;
-
-        const question = qEl.value;
-
-        if (seen.has(question)) {
-            alert("Duplicate question: " + question);
-            return;
-        }
-
-        seen.add(question);
+        const question = document.getElementById(`q${i}`).value;
 
         const options = [
             document.getElementById(`q${i}o1`).value,
@@ -117,40 +105,43 @@ function submitTest() {
         const selected = document.querySelector(`input[name="ans${i}"]:checked`);
 
         if (!question || options.includes("") || !selected) {
-            alert("Complete all questions");
+            alert("Fill all fields for Question " + i);
             return;
         }
 
-        questions.push({
-            question,
-            options,
-            answer: options[selected.value - 1]
-        });
+        const answer = options[selected.value - 1];
+
+        // SEND TO BACKEND
+        fetch("https://classroom-test-system.onrender.com/add-question", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                testName,
+                question,
+                options,
+                answer,
+                time: totalTime
+            })
+        })
+        .then(res => res.text())
+        .then(data => console.log(data))
+        .catch(err => console.log(err));
     }
 
-    fetch("https://classroom-test-system.onrender.com/add-questions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            testName,
-            questions,
-            time: totalTime
-        })
-    })
-    .then(async res => {
-        const data = await res.json();
-
-        if (!res.ok) {
-            alert(data.message);
-            return;
-        }
-
-        alert("Saved");
-        window.location.href = "dashboard.html";
-    });
+    alert("Test Created Successfully 🎉");
+    window.location.href = "dashboard.html";
 }
+
+// ================= TIMER INPUT LIMIT =================
+document.querySelectorAll(".time-input input").forEach(input => {
+    input.addEventListener("input", () => {
+        if (input.value.length > 2) {
+            input.value = input.value.slice(0, 2);
+        }
+    });
+});
 
 </script>
 
