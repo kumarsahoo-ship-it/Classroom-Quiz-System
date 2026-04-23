@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create / Edit Test</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Create Test</title>
 </head>
 <body>
 
-<h2>Create / Edit Test</h2>
+<h2>Create Test</h2>
 
 <input id="testName" placeholder="Test Name"><br><br>
 
@@ -21,63 +20,46 @@
 
    <br>
 
-<!-- QUESTIONS -->
+<hr>
+
 <div id="questions"></div>
 
-<button onclick="addQuestion()">➕ Add Question</button>
+<button type="button" onclick="addQuestion()">Add Question</button>
 <br><br>
-
-<button onclick="submitTest()">✅ Save Test</button>
+<button type="button" onclick="submitTest()">Submit Test</button>
 
 <script>
 
 let count = 0;
 
 // ================= ADD QUESTION =================
-function addQuestion(qData = null) {
+function addQuestion() {
     count++;
 
     const div = document.createElement("div");
-    div.className = "card";
 
     div.innerHTML = `
-        <h3>Question ${count}</h3>
+        <h3>Q${count}</h3>
 
-        <input id="q${count}" placeholder="Question"><br><br>
+        <input id="q${count}" placeholder="Question"><br>
 
         <input id="q${count}o1" placeholder="Option 1"><br>
         <input id="q${count}o2" placeholder="Option 2"><br>
         <input id="q${count}o3" placeholder="Option 3"><br>
-        <input id="q${count}o4" placeholder="Option 4"><br><br>
+        <input id="q${count}o4" placeholder="Option 4"><br>
 
-        <label>Select Correct:</label><br>
-        <input type="radio" name="ans${count}" value="1">1
-        <input type="radio" name="ans${count}" value="2">2
-        <input type="radio" name="ans${count}" value="3">3
-        <input type="radio" name="ans${count}" value="4">4
+        <label><input type="radio" name="ans${count}" value="1">1</label>
+        <label><input type="radio" name="ans${count}" value="2">2</label>
+        <label><input type="radio" name="ans${count}" value="3">3</label>
+        <label><input type="radio" name="ans${count}" value="4">4</label>
 
         <hr>
     `;
 
     document.getElementById("questions").appendChild(div);
-
-    // ✅ Prefill for edit mode
-    if (qData) {
-        document.getElementById(`q${count}`).value = qData.question;
-
-        qData.options.forEach((opt, i) => {
-            document.getElementById(`q${count}o${i+1}`).value = opt;
-
-            if (opt === qData.answer) {
-                document.querySelector(
-                    `input[name="ans${count}"][value="${i+1}"]`
-                ).checked = true;
-            }
-        });
-    }
 }
 
-// ================= SUBMIT TEST =================
+// ================= SUBMIT =================
 function submitTest() {
 
     const testName = document.getElementById("testName").value.trim();
@@ -86,18 +68,18 @@ function submitTest() {
     const m = parseInt(minute.value) || 0;
     const s = parseInt(second.value) || 0;
 
-    const totalTime = h * 3600 + m * 60 + s;
+    const totalTime = h*3600 + m*60 + s;
 
     if (!testName || totalTime <= 0) {
-        alert("Enter test name and timer");
+        alert("Enter test name & timer");
         return;
     }
 
     let questions = [];
 
-    for (let i = 1; i <= count; i++) {
+    for (let i=1;i<=count;i++) {
 
-        const question = document.getElementById(`q${i}`).value;
+        const q = document.getElementById(`q${i}`).value;
 
         const options = [
             document.getElementById(`q${i}o1`).value,
@@ -108,72 +90,43 @@ function submitTest() {
 
         const selected = document.querySelector(`input[name="ans${i}"]:checked`);
 
-        if (!question || options.includes("") || !selected) {
-            alert("❌ Complete all questions first");
+        if (!q || options.includes("") || !selected) {
+            alert("Complete all questions");
             return;
         }
 
         questions.push({
-            question,
+            question: q,
             options,
-            answer: options[selected.value - 1]
+            answer: options[selected.value-1]
         });
     }
 
+    // ✅ ONE CALL ONLY
     fetch("https://classroom-test-system.onrender.com/add-questions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
             testName,
             questions,
             time: totalTime
         })
     })
-    .then(async res => {
-        const data = await res.json();
-
-        if (!res.ok) {
-            alert("❌ " + data.message);
+    .then(res => res.json())
+    .then(data => {
+        if (data.message === "Test already exists") {
+            alert("Test name already exists");
             return;
         }
 
-        alert("✅ Test Saved");
+        alert("Test Created");
         window.location.href = "dashboard.html";
-    })
-    .catch(err => {
-        console.log(err);
-        alert("Server error");
-    });
-}
-
-// ================= EDIT MODE =================
-const params = new URLSearchParams(window.location.search);
-const editTest = params.get("test");
-
-if (editTest) {
-
-    document.getElementById("testName").value = editTest;
-
-    fetch(`https://classroom-test-system.onrender.com/test/${editTest}`)
-    .then(res => res.json())
-    .then(data => {
-
-        if (!data) return;
-
-        let t = data.time;
-        hour.value = Math.floor(t / 3600);
-        minute.value = Math.floor((t % 3600) / 60);
-        second.value = t % 60;
-
-        data.questions.forEach(q => {
-            addQuestion(q);
-        });
-
     })
     .catch(err => console.log(err));
 }
+
+// start with one question
+addQuestion();
 
 </script>
 
