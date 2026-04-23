@@ -4,14 +4,13 @@ const cors = require("cors");
 
 const app = express();
 
-// ================= MIDDLEWARE =================
 app.use(express.json());
 app.use(cors());
 
-// ================= DB CONNECT =================
+// ================= DB =================
 mongoose.connect(process.env.MONGO_URL)
-.then(() => console.log("MongoDB Connected"))
-.catch(err => console.log(err));
+.then(()=>console.log("MongoDB Connected"))
+.catch(err=>console.log(err));
 
 
 // ================= SCHEMAS =================
@@ -23,11 +22,12 @@ const UserSchema = new mongoose.Schema({
 });
 const User = mongoose.model("User", UserSchema);
 
-// TEST (FULL TEST STORED IN ONE DOC)
+// TEST
 const QuestionSchema = new mongoose.Schema({
   testName: String,
   questions: Array,
-  time: Number
+  time: Number,
+  createdBy: String   // 🔥 OWNER
 });
 const Question = mongoose.model("Question", QuestionSchema);
 
@@ -44,56 +44,44 @@ const Result = mongoose.model("Result", ResultSchema);
 // ================= ROUTES =================
 
 // HOME
-app.get("/", (req, res) => {
-  res.send("Server Running");
-});
+app.get("/", (req, res) => res.send("Server Running"));
 
 
 // ================= AUTH =================
-
-// SIGNUP
 app.post("/signup", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    const user = new User({ username, password });
-    await user.save();
-
-    res.send("User registered");
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Signup error");
-  }
+  const { username, password } = req.body;
+  await new User({ username, password }).save();
+  res.send("User registered");
 });
 
-// LOGIN
 app.post("/login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    const user = await User.findOne({ username, password });
+  const user = await User.findOne({ username, password });
 
-    if (user) {
-      res.send("Login successful");
-    } else {
-      res.send("Invalid credentials");
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Login error");
-  }
+  if (user) res.send("Login successful");
+  else res.send("Invalid credentials");
 });
 
 
-// ================= CREATE / UPDATE TEST =================
+// ================= CREATE / EDIT TEST =================
 app.post("/add-questions", async (req, res) => {
   try {
-    const { testName, questions, time } = req.body;
+    const { testName, questions, time, createdBy } = req.body;
 
-    // 🔄 UPSERT (edit if exists, else create)
+    const existing = await Question.findOne({ testName });
+
+    // ❌ BLOCK IF NOT OWNER
+    if (existing && existing.createdBy !== createdBy) {
+      return res.status(403).json({
+        message: "❌ You are not allowed to edit this test"
+      });
+    }
+
+    // ✅ CREATE OR UPDATE
     await Question.findOneAndUpdate(
       { testName },
-      { testName, questions, time },
+      { testName, questions, time, createdBy },
       { upsert: true, new: true }
     );
 
@@ -106,96 +94,55 @@ app.post("/add-questions", async (req, res) => {
 });
 
 
-// ================= GET TEST LIST =================
+// ================= GET ALL TESTS =================
 app.get("/tests", async (req, res) => {
-  try {
-    const tests = await Question.find({}, "testName");
-    res.json(tests.map(t => t.testName));
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Error fetching tests");
-  }
+  const tests = await Question.find({}, "testName createdBy");
+  res.json(tests);
 });
 
 
-// ================= GET QUESTIONS (QUIZ PAGE) =================
+// ================= GET QUESTIONS (QUIZ) =================
 app.get("/questions/:testName", async (req, res) => {
-  try {
-    const data = await Question.findOne({ testName: req.params.testName });
+  const data = await Question.findOne({ testName: req.params.testName });
 
-    if (!data) return res.json([]);
+  if (!data) return res.json([]);
 
-    res.json(
-      data.questions.map(q => ({
-        ...q,
-        time: data.time
-      }))
-    );
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Error fetching questions");
-  }
+  res.json(
+    data.questions.map(q => ({
+      ...q,
+      time: data.time
+    }))
+  );
 });
 
 
-// ================= GET FULL TEST (EDIT PAGE) =================
+// ================= GET FULL TEST (EDIT) =================
 app.get("/test/:testName", async (req, res) => {
-  try {
-    const data = await Question.findOne({ testName: req.params.testName });
-
-    if (!data) return res.json(null);
-
-    res.json(data);
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Error fetching test");
-  }
+  const data = await Question.findOne({ testName: req.params.testName });
+  res.json(data);
 });
 
 
 // ================= SAVE RESULT =================
 app.post("/result", async (req, res) => {
-  try {
-    const result = new Result(req.body);
-    await result.save();
-
-    res.send("Result saved");
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Error saving result");
-  }
+  await new Result(req.body).save();
+  res.send("Result saved");
 });
 
 
 // ================= USER RESULTS =================
 app.get("/results/:username", async (req, res) => {
-  try {
-    const data = await Result.find({ username: req.params.username });
-    res.json(data);
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Error fetching results");
-  }
+  const data = await Result.find({ username: req.params.username });
+  res.json(data);
 });
 
 
 // ================= LEADERBOARD =================
 app.get("/leaderboard/:testName", async (req, res) => {
-  try {
-    const data = await Result.find({
-      testName: req.params.testName
-    }).sort({ score: -1 });
+  const data = await Result.find({ testName: req.params.testName })
+    .sort({ score: -1 });
 
-    res.json(data);
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Leaderboard error");
-  }
+  res.json(data);
 });
 
 
