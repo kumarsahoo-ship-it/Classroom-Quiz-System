@@ -1,110 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>View Tests</title>
-    <style>
-        body {
-            font-family: Arial;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        button {
-            margin: 5px;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .start {
-            background: green;
-            color: white;
-        }
-
-        .edit {
-            background: orange;
-            color: white;
-        }
-    </style>
+    <title>Available Tests</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h2>Available Tests</h2>
 
-<div id="testList"></div>
+<div id="tests"></div>
 
 <script>
-
-const API = "https://classroom-test-system.onrender.com";
-const user = localStorage.getItem("user");
-
-// ================= LOAD TESTS =================
-function loadTests() {
-
-    fetch(API + "/tests")
-    .then(res => res.json())
-    .then(data => {
-
-        const container = document.getElementById("testList");
-        container.innerHTML = "";
-
-        if (data.length === 0) {
-            container.innerHTML = "<p>No tests available</p>";
-            return;
-        }
-
-        data.forEach(t => {
-
-            const div = document.createElement("div");
-            div.className = "card";
-
-            div.innerHTML = `
-                <h3>${t.testName}</h3>
-
-                <button class="start" onclick="startTest('${t.testName}')">
-                    ▶ Start
-                </button>
-
-                ${
-                    t.createdBy === user
-                    ? `<button class="edit" onclick="editTest('${t.testName}')">
-                        ✏ Edit
-                       </button>`
-                    : ""
-                }
-            `;
-
-            container.appendChild(div);
-        });
-    })
-    .catch(err => {
-        console.log(err);
-        alert("Error loading tests");
+fetch("https://classroom-test-system.onrender.com/tests")
+.then(res => res.json())
+.then(data => {
+    data.forEach(test => {
+        document.getElementById("tests").innerHTML += `
+            <div class="card">
+                <h3>${test}</h3>
+                <button onclick="startTest('${test}')">Start Test</button>
+            </div>
+        `;
     });
+});
+
+function startTest(name) {
+    localStorage.setItem("testName", name);
+    window.location.href = "quiz.html"; // redirect
 }
-
-// ================= START TEST =================
-function startTest(testName) {
-    window.location.href = "quiz.html?test=" + testName;
-}
-
-// ================= EDIT TEST =================
-function editTest(testName) {
-    window.location.href = "create-test.html?test=" + testName;
-}
-
-// ================= INIT =================
-loadTests();
-
 </script>
 
 </body>
