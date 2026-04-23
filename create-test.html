@@ -2,144 +2,146 @@
 <html>
 <head>
     <title>Create Test</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Create / Edit Test</h2>
+<h2>Create Test</h2>
 
 <input id="testName" placeholder="Test Name"><br><br>
 
-<h3>Timer</h3>
-<input id="hour" placeholder="HH"> :
-<input id="minute" placeholder="MM"> :
-<input id="second" placeholder="SS">
+<!-- ⏱ TIMER -->
+<h3>⏱ Set Timer</h3>
 
+<div class="timer-box">
+    <div class="time-input">
+        <input id="hour" type="number" min="0" max="23" placeholder="00">
+        <label>Hours</label>
+    </div>
+
+    <span>:</span>
+
+    <div class="time-input">
+        <input id="minute" type="number" min="0" max="59" placeholder="00">
+        <label>Minutes</label>
+    </div>
+
+    <span>:</span>
+
+    <div class="time-input">
+        <input id="second" type="number" min="0" max="59" placeholder="00">
+        <label>Seconds</label>
+    </div>
+</div>
+
+<!-- QUESTIONS -->
 <div id="questions"></div>
 
-<br>
-<button onclick="addQuestion()">Add Question</button>
-<button onclick="submitTest()">Save Test</button>
+<button type="button" onclick="addQuestion()">➕ Add Question</button>
+<br><br>
+<button type="button" onclick="submitTest()">✅ Submit Test</button>
 
 <script>
 
 let count = 0;
 
-function addQuestion(qData=null){
+// ================= ADD QUESTION =================
+function addQuestion() {
     count++;
 
     const div = document.createElement("div");
+    div.className = "card";
 
     div.innerHTML = `
-        <h3>Q${count}</h3>
-        <input id="q${count}" placeholder="Question"><br>
+        <h3>Question ${count}</h3>
+
+        <input id="q${count}" placeholder="Enter question"><br><br>
+
         <input id="q${count}o1" placeholder="Option 1"><br>
         <input id="q${count}o2" placeholder="Option 2"><br>
         <input id="q${count}o3" placeholder="Option 3"><br>
-        <input id="q${count}o4" placeholder="Option 4"><br>
+        <input id="q${count}o4" placeholder="Option 4"><br><br>
 
-        <input type="radio" name="ans${count}" value="1">1
-        <input type="radio" name="ans${count}" value="2">2
-        <input type="radio" name="ans${count}" value="3">3
-        <input type="radio" name="ans${count}" value="4">4
+        <label><b>Select Correct Answer:</b></label><br>
+
+        <label><input type="radio" name="ans${count}" value="1"> Option 1</label><br>
+        <label><input type="radio" name="ans${count}" value="2"> Option 2</label><br>
+        <label><input type="radio" name="ans${count}" value="3"> Option 3</label><br>
+        <label><input type="radio" name="ans${count}" value="4"> Option 4</label>
+
         <hr>
     `;
 
     document.getElementById("questions").appendChild(div);
-
-    if(qData){
-        document.getElementById(`q${count}`).value = qData.question;
-
-        qData.options.forEach((opt,i)=>{
-            document.getElementById(`q${count}o${i+1}`).value = opt;
-
-            if(opt === qData.answer){
-                document.querySelector(
-                  `input[name="ans${count}"][value="${i+1}"]`
-                ).checked = true;
-            }
-        });
-    }
 }
 
-// ================= SUBMIT =================
-function submitTest(){
+// ================= SUBMIT TEST =================
+function submitTest() {
 
-    const testName = testNameInput.value.trim();
+    const testName = document.getElementById("testName").value.trim();
 
-    const totalTime =
-        (parseInt(hour.value)||0)*3600 +
-        (parseInt(minute.value)||0)*60 +
-        (parseInt(second.value)||0);
+    const h = parseInt(document.getElementById("hour").value) || 0;
+    const m = parseInt(document.getElementById("minute").value) || 0;
+    const s = parseInt(document.getElementById("second").value) || 0;
 
-    if(!testName || totalTime<=0){
-        alert("Enter name & timer");
+    const totalTime = h * 3600 + m * 60 + s;
+
+    if (!testName || totalTime <= 0) {
+        alert("Enter test name and valid timer");
         return;
     }
 
-    let questions=[];
+    for (let i = 1; i <= count; i++) {
 
-    for(let i=1;i<=count;i++){
+        const question = document.getElementById(`q${i}`).value;
 
-        const q = document.getElementById(`q${i}`).value;
-
-        const opts = [
-            q1o1 = document.getElementById(`q${i}o1`).value,
-            q1o2 = document.getElementById(`q${i}o2`).value,
-            q1o3 = document.getElementById(`q${i}o3`).value,
-            q1o4 = document.getElementById(`q${i}o4`).value
+        const options = [
+            document.getElementById(`q${i}o1`).value,
+            document.getElementById(`q${i}o2`).value,
+            document.getElementById(`q${i}o3`).value,
+            document.getElementById(`q${i}o4`).value
         ];
 
         const selected = document.querySelector(`input[name="ans${i}"]:checked`);
 
-        if(!q || opts.includes("") || !selected){
-            alert("Complete all questions");
+        if (!question || options.includes("") || !selected) {
+            alert("Fill all fields for Question " + i);
             return;
         }
 
-        questions.push({
-            question:q,
-            options:opts,
-            answer:opts[selected.value-1]
-        });
+        const answer = options[selected.value - 1];
+
+        // SEND TO BACKEND
+        fetch("https://classroom-test-system.onrender.com/add-question", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                testName,
+                question,
+                options,
+                answer,
+                time: totalTime
+            })
+        })
+        .then(res => res.text())
+        .then(data => console.log(data))
+        .catch(err => console.log(err));
     }
 
-    fetch("https://classroom-test-system.onrender.com/add-questions",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({
-            testName,
-            questions,
-            time: totalTime,
-            createdBy: localStorage.getItem("user")
-        })
-    })
-    .then(r=>r.json())
-    .then(d=>{
-        alert(d.message);
-        window.location="dashboard.html";
-    });
+    alert("Test Created Successfully 🎉");
+    window.location.href = "dashboard.html";
 }
 
-// ================= EDIT MODE =================
-const params = new URLSearchParams(location.search);
-const edit = params.get("test");
-
-if(edit){
-    testNameInput.value = edit;
-
-    fetch(`https://classroom-test-system.onrender.com/test/${edit}`)
-    .then(r=>r.json())
-    .then(data=>{
-        if(!data) return;
-
-        let t=data.time;
-        hour.value = Math.floor(t/3600);
-        minute.value = Math.floor((t%3600)/60);
-        second.value = t%60;
-
-        data.questions.forEach(q=>addQuestion(q));
+// ================= TIMER INPUT LIMIT =================
+document.querySelectorAll(".time-input input").forEach(input => {
+    input.addEventListener("input", () => {
+        if (input.value.length > 2) {
+            input.value = input.value.slice(0, 2);
+        }
     });
-}
+});
 
 </script>
 
